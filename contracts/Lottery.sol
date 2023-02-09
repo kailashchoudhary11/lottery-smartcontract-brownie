@@ -67,21 +67,23 @@ contract Lottery is Ownable, VRFConsumerBaseV2{
         return uint256(price) * 10**10;
     }
 
-    function endLottery() public {
+    function endLottery() public returns(uint256){
         require(current_state == State.OPEN, "The lottery is not open!");
         current_state = State.CALCULATING_WINNER;
-        calculateWinner();
+        uint256 requestId = calculateWinner();
+        return requestId;
     }
 
-    function calculateWinner() internal {
+    function calculateWinner() internal returns(uint256){
         require(current_state == State.CALCULATING_WINNER, "Cannot calculate the winner yet!");
-        Coordinator.requestRandomWords(
+        uint256 requestId = Coordinator.requestRandomWords(
             keyHash,
             s_subscriptionId,
             requestConfirmations,
             callbackGasLimit,
             numWords
         );
+        return requestId;
     }
 
     function fulfillRandomWords(

@@ -1,6 +1,7 @@
 from brownie import Lottery, web3
 from scripts.deploy_lottery import deploy_lottery
-from scripts.helpers import get_account
+from scripts.helpers import get_account, fulfill_request
+import time
 
 def start_lottery():
     account = get_account()
@@ -25,6 +26,9 @@ def end_lottery():
     print("Ending the lottery...")
     end_tx = lottery.endLottery({"from": account})
     end_tx.wait(1)
+    request_id = end_tx.events["RandomWordsRequested"]["requestId"]
+    fulfill_request(request_id, lottery.address)
+    print(lottery.randomWord())
     print("Lottery ended successfully!")
 
 def main():
@@ -32,3 +36,4 @@ def main():
     start_lottery()
     enter_lottery()
     end_lottery()
+    

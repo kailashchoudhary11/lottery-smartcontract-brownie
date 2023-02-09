@@ -79,3 +79,10 @@ def fund_subscription(sub_id):
         deploy_mocks()
     coordinator = VRFCoordinatorV2Mock[-1]
     coordinator.fundSubscription(sub_id, FUND_AMOUNT, {"from": get_account()})
+
+def fulfill_request(request_id, consumer):
+    if len(VRFCoordinatorV2Mock) <= 0:
+        deploy_mocks()
+        
+    coordinator = VRFCoordinatorV2Mock[-1]
+    coordinator.fulfillRandomWords(request_id, consumer, {"from": get_account()})
