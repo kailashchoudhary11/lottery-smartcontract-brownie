@@ -8,6 +8,7 @@ INITIAL_VALUE = 200000000000
 BASE_FEE = 100000000000000000
 GAS_PRICE_LINK = 1e9
 FUND_AMOUNT = 1e18
+SUB_ID = None
 
 LOCAL_BLOCKCHAIN_NETWORK = ["development"]
 ACTIVE_NETWORK = network.show_active()
@@ -47,6 +48,11 @@ def get_key_hash():
     return config["networks"][ACTIVE_NETWORK]["keyhash"]
 
 def get_sub_id():
+    global SUB_ID
+
+    if SUB_ID is not None:
+        return SUB_ID
+    
     if ACTIVE_NETWORK not in LOCAL_BLOCKCHAIN_NETWORK:
         return config["networks"][ACTIVE_NETWORK]["sub_id"]
 
@@ -61,9 +67,10 @@ def get_sub_id():
     print("Subscription Created!")
     sub_id = sub_tx.events["SubscriptionCreated"]["subId"]
     # sub_id = sub_tx.return_value
+    SUB_ID = sub_id
     return sub_id
 
-def add_consumer(sub_id, consumer):
+def add_consumer(consumer):
     if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
         if len(VRFCoordinatorV2Mock) <= 0:
             deploy_mocks()
@@ -73,7 +80,8 @@ def add_consumer(sub_id, consumer):
         coordinator = Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)
 
     print("Adding consumer...")
-    add_tx = coordinator.addConsumer(sub_id, consumer, {"from": get_account()})
+    print("Subscription id is:", get_sub_id())
+    add_tx = coordinator.addConsumer(get_sub_id(), consumer, {"from": get_account()})
     add_tx.wait(1)
     print("Consumer Added!")
 
@@ -89,3 +97,17 @@ def fulfill_request(request_id, consumer):
         
     coordinator = VRFCoordinatorV2Mock[-1]
     coordinator.fulfillRandomWords(request_id, consumer, {"from": get_account()})
+
+def remove_consumer(consumer):
+    if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
+        if len(VRFCoordinatorV2Mock) <= 0:
+            deploy_mocks()
+
+        coordinator = VRFCoordinatorV2Mock[-1]
+    else:
+        coordinator = Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)
+
+    print("Removing consumer...")
+    add_tx = coordinator.removeConsumer(get_sub_id(), consumer, {"from": get_account()})
+    add_tx.wait(1)
+    print("Consumer removed!")

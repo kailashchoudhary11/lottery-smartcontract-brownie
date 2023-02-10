@@ -16,6 +16,10 @@ networks:
     callbackGasLimit: 100000
     sub_id: 9220
     verify: True
+  
+  sepolia:
+    verify: True
+
   mainnet:
     price_feed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
     keyhash: "0x8af398995b04c28e9951adb9721ef74c74f93e6a478f39e7e0777be13527e7ef"

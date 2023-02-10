@@ -1,6 +1,6 @@
 from brownie import Lottery, web3
 from scripts.deploy_lottery import deploy_lottery
-from scripts.helpers import get_account, fulfill_request, ACTIVE_NETWORK, LOCAL_BLOCKCHAIN_NETWORK
+from scripts.helpers import get_account, fulfill_request, ACTIVE_NETWORK, LOCAL_BLOCKCHAIN_NETWORK, remove_consumer
 import time
 
 def start_lottery():
@@ -42,6 +42,9 @@ def end_lottery():
     print("The random number is:", lottery.randomWord())
     print("Lottery ended successfully!")
     winner_details()
+
+    remove_consumer(lottery.address)
+    
 
 def winner_details():
     lottery = Lottery[-1]
