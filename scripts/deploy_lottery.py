@@ -14,7 +14,7 @@ def deploy_lottery():
 
     if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
         fund_subscription(sub_id)
-        add_consumer(sub_id, Lottery[-1])
+    add_consumer(sub_id, Lottery[-1].address)
 
 def main():
     deploy_lottery()

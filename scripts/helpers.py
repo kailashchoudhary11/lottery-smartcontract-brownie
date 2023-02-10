@@ -1,4 +1,4 @@
-from brownie import network, VRFCoordinatorV2Mock, accounts, MockV3Aggregator, config, web3
+from brownie import network, VRFCoordinatorV2Mock, accounts, MockV3Aggregator, config, Contract
 
 # Aggregator 
 DECIMALS = 8
@@ -64,10 +64,13 @@ def get_sub_id():
     return sub_id
 
 def add_consumer(sub_id, consumer):
-    if len(VRFCoordinatorV2Mock) <= 0:
-        deploy_mocks()
+    if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
+        if len(VRFCoordinatorV2Mock) <= 0:
+            deploy_mocks()
 
-    coordinator = VRFCoordinatorV2Mock[-1]
+        coordinator = VRFCoordinatorV2Mock[-1]
+    else:
+        coordinator = Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)
 
     print("Adding consumer...")
     add_tx = coordinator.addConsumer(sub_id, consumer, {"from": get_account()})

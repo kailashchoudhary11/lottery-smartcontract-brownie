@@ -10,9 +10,10 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 contract Lottery is Ownable, VRFConsumerBaseV2{
 
     address payable[] public players;
-    uint256 public entryFeeInUsd;
+    address payable public winner;
     mapping(address => uint) public playerToAmount;
-    
+    uint256 public entryFeeInUsd;
+
     enum State {
         OPEN,
         CLOSED,
@@ -54,6 +55,8 @@ contract Lottery is Ownable, VRFConsumerBaseV2{
     function enterToLottery() public payable{
         require(current_state == State.OPEN, "No more entries are allowed!");
         require(getEntryFee() <= msg.value, "You need to spend more ETH!");
+        players.push(payable(msg.sender));
+        playerToAmount[msg.sender] += msg.value;
     }
 
     function getEntryFee() public view returns (uint256) {
@@ -91,6 +94,13 @@ contract Lottery is Ownable, VRFConsumerBaseV2{
         uint256[] memory _randomWords
     ) internal override {
         randomWord = _randomWords[0];
+        uint256 winnerIndex = randomWord % players.length;
+
+        winner = players[winnerIndex];
+        winner.transfer(address(this).balance);
+
+        players = new address payable[](0);
+
         current_state = State.CLOSED;
     }
 }
