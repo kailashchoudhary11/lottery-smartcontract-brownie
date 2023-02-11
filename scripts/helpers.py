@@ -62,22 +62,15 @@ def get_sub_id():
     coordinator = VRFCoordinatorV2Mock[-1]
 
     print("Creating Subscription...")
-    sub_tx = coordinator.createSubscription()
+    sub_tx = coordinator.createSubscription({'from': get_account()})
     sub_tx.wait(1)
     print("Subscription Created!")
     sub_id = sub_tx.events["SubscriptionCreated"]["subId"]
-    # sub_id = sub_tx.return_value
     SUB_ID = sub_id
     return sub_id
 
 def add_consumer(consumer):
-    if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
-        if len(VRFCoordinatorV2Mock) <= 0:
-            deploy_mocks()
-
-        coordinator = VRFCoordinatorV2Mock[-1]
-    else:
-        coordinator = Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)
+    coordinator = get_coordinator()
 
     print("Adding consumer...")
     print("Subscription id is:", get_sub_id())
@@ -86,28 +79,28 @@ def add_consumer(consumer):
     print("Consumer Added!")
 
 def fund_subscription(sub_id):
-    if len(VRFCoordinatorV2Mock) <= 0:
-        deploy_mocks()
-    coordinator = VRFCoordinatorV2Mock[-1]
+    coordinator = get_coordinator()
     coordinator.fundSubscription(sub_id, FUND_AMOUNT, {"from": get_account()})
 
 def fulfill_request(request_id, consumer):
-    if len(VRFCoordinatorV2Mock) <= 0:
-        deploy_mocks()
-        
-    coordinator = VRFCoordinatorV2Mock[-1]
+    coordinator = get_coordinator()
     coordinator.fulfillRandomWords(request_id, consumer, {"from": get_account()})
 
 def remove_consumer(consumer):
+    print("Removing consumer...")
+    coordinator = get_coordinator()
+    add_tx = coordinator.removeConsumer(get_sub_id(), consumer, {"from": get_account()})
+    add_tx.wait(1)
+    print("Consumer removed!")
+
+def get_sub_ids(address):
+    coordinator = get_coordinator()
+    return coordinator.getSubscriptionIds(address)
+    
+def get_coordinator():
     if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
         if len(VRFCoordinatorV2Mock) <= 0:
             deploy_mocks()
 
-        coordinator = VRFCoordinatorV2Mock[-1]
-    else:
-        coordinator = Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)
-
-    print("Removing consumer...")
-    add_tx = coordinator.removeConsumer(get_sub_id(), consumer, {"from": get_account()})
-    add_tx.wait(1)
-    print("Consumer removed!")
+        return VRFCoordinatorV2Mock[-1]
+    return Contract.from_abi("VRFCoordinatorV2", get_contract_address("vrf_coordinator"), VRFCoordinatorV2Mock.abi)

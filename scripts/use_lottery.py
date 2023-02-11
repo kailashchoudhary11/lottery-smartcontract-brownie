@@ -6,7 +6,7 @@ import time
 def start_lottery():
     account = get_account()
     lottery = Lottery[-1]
-    print("Stating Lottery...")
+    print("Starting Lottery...")
 
     start_tx = lottery.startLottery({"from": account })
     start_tx.wait(1)
