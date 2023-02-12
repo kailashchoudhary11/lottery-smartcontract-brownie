@@ -31,7 +31,7 @@ def get_account(index=None, id=None):
         return accounts[index]
 
     if id is not None:
-        return accounts.get(id)
+        return accounts.load(id)
 
     if network.show_active() in LOCAL_BLOCKCHAIN_NETWORK:
         return accounts[0]
