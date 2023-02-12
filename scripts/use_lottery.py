@@ -37,7 +37,7 @@ def end_lottery():
         request_id = end_tx.events["RandomWordsRequested"]["requestId"]
         fulfill_request(request_id, lottery.address)
     else:
-        time.sleep(30)
+        time.sleep(80)
 
     print("The random number is:", lottery.randomWord())
     print("Lottery ended successfully!")

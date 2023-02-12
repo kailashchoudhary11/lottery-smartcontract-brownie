@@ -10,7 +10,7 @@ GAS_PRICE_LINK = 1e9
 FUND_AMOUNT = 1e18
 SUB_ID = None
 
-LOCAL_BLOCKCHAIN_NETWORK = ["development"]
+LOCAL_BLOCKCHAIN_NETWORK = ["development", "ganache-local"]
 ACTIVE_NETWORK = network.show_active()
 
 contract_to_mock = {
@@ -18,22 +18,29 @@ contract_to_mock = {
     "vrf_coordinator": VRFCoordinatorV2Mock,
 }
 
-def get_account():
-    if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
+def get_account(index=None, id=None):
+    if index is not None:
+        return accounts[index]
+
+    if id is not None:
+        return accounts.get(id)
+    
+    if network.show_active() in LOCAL_BLOCKCHAIN_NETWORK:
         return accounts[0]
+
     return accounts.add(config["wallet"]["from_key"])
 
 def get_contract_address(contract_name):
     contract = contract_to_mock.get(contract_name)
     if contract is not None:
-        if ACTIVE_NETWORK not in LOCAL_BLOCKCHAIN_NETWORK:
-            return config["networks"][ACTIVE_NETWORK][contract_name]
+        if network.show_active() not in LOCAL_BLOCKCHAIN_NETWORK:
+            return config["networks"][network.show_active()][contract_name]
         if len(contract) <= 0:
             deploy_mocks()
         return contract[-1].address
 
 def deploy_mocks():
-    print("Current Active newtork is", ACTIVE_NETWORK)
+    print("Current Active newtork is", network.show_active())
     account = get_account()
 
     print("Deploying Aggregator Mock...")
@@ -45,7 +52,7 @@ def deploy_mocks():
     print("Coordinator Mock Deployed!")
 
 def get_key_hash():
-    return config["networks"][ACTIVE_NETWORK]["keyhash"]
+    return config["networks"][network.show_active()]["keyhash"]
 
 def get_sub_id():
     global SUB_ID
@@ -53,8 +60,8 @@ def get_sub_id():
     if SUB_ID is not None:
         return SUB_ID
     
-    if ACTIVE_NETWORK not in LOCAL_BLOCKCHAIN_NETWORK:
-        return config["networks"][ACTIVE_NETWORK]["sub_id"]
+    if network.show_active() not in LOCAL_BLOCKCHAIN_NETWORK:
+        return config["networks"][network.show_active()]["sub_id"]
 
     if len(VRFCoordinatorV2Mock) <= 0:
         deploy_mocks()
@@ -78,9 +85,9 @@ def add_consumer(consumer):
     add_tx.wait(1)
     print("Consumer Added!")
 
-def fund_subscription(sub_id):
+def fund_subscription(sub_id, fund_amount=FUND_AMOUNT):
     coordinator = get_coordinator()
-    coordinator.fundSubscription(sub_id, FUND_AMOUNT, {"from": get_account()})
+    coordinator.fundSubscription(sub_id, fund_amount, {"from": get_account()})
 
 def fulfill_request(request_id, consumer):
     coordinator = get_coordinator()
@@ -98,7 +105,7 @@ def get_sub_ids(address):
     return coordinator.getSubscriptionIds(address)
     
 def get_coordinator():
-    if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
+    if network.show_active() in LOCAL_BLOCKCHAIN_NETWORK:
         if len(VRFCoordinatorV2Mock) <= 0:
             deploy_mocks()
 

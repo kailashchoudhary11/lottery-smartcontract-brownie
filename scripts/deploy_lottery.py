@@ -9,13 +9,15 @@ def deploy_lottery():
     sub_id = get_sub_id()
 
     print("Deploying Lottery...")
-    Lottery.deploy(price_feed, sub_id, key_hash, coordinator, {"from": account})
+    lottery = Lottery.deploy(price_feed, sub_id, key_hash, coordinator, {"from": account})
     print("Lottery deployed!")
 
     if ACTIVE_NETWORK in LOCAL_BLOCKCHAIN_NETWORK:
         fund_subscription(sub_id)
 
     add_consumer(Lottery[-1].address)
+    
+    return lottery
     
 
 def main():

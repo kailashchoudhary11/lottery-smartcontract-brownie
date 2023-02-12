@@ -33,6 +33,8 @@ contract Lottery is Ownable, VRFConsumerBaseV2{
     uint32 numWords = 1;
 
     uint256 public randomWord;
+
+    event RequestedRandomness(uint256 requestId);
      
     constructor(address _priceFeed, uint64 _subscriptionId, bytes32 _keyHash, address _coordinator) VRFConsumerBaseV2(_coordinator) {
         entryFeeInUsd = 50 * (10**18);
@@ -74,6 +76,7 @@ contract Lottery is Ownable, VRFConsumerBaseV2{
         require(current_state == State.OPEN, "The lottery is not open!");
         current_state = State.CALCULATING_WINNER;
         uint256 requestId = calculateWinner();
+        emit RequestedRandomness(requestId);
         return requestId;
     }
 
